@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Random Number Picker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: url('https://source.unsplash.com/featured/?abstract') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        input[type="number"] {
+            width: 100px;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        select, button {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .history {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #f8f9fa;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Random Number Picker</h1>
+        <p>Generate random numbers with advanced options!</p>
+
+        <div>
+            <label for="min">Min:</label>
+            <input type="number" id="min" value="1">
+
+            <label for="max">Max:</label>
+            <input type="number" id="max" value="100">
+        </div>
+
+        <div>
+            <label for="howMany">How many to generate:</label>
+            <input type="number" id="howMany" value="1">
+        </div>
+
+        <div>
+            <label for="allowRepeat">Allow repeat:</label>
+            <select id="allowRepeat">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="sortOrder">Sort:</label>
+            <select id="sortOrder">
+                <option value="none">Do not sort</option>
+                <option value="lowToHigh">Low to high</option>
+                <option value="highToLow">High to low</option>
+            </select>
+        </div>
+
+        <button onclick="generateNumbers()">Calculate</button>
+        <button onclick="confirmClearResults()">Clear</button>
+
+        <div class="result" id="result">-</div>
+        <div class="history" id="history">History: -</div>
+    </div>
+
+    <script>
+        let generatedNumbers = new Set();
+        let history = [];
+
+        function generateNumbers() {
+            const min = parseInt(document.getElementById('min').value);
+            const max = parseInt(document.getElementById('max').value);
+            const howMany = parseInt(document.getElementById('howMany').value);
+            const allowRepeat = document.getElementById('allowRepeat').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+
+            if (isNaN(min) || isNaN(max) || isNaN(howMany) || min > max || howMany <= 0) {
+                document.getElementById('result').innerText = "Invalid input! Please check your values.";
+                return;
+            }
+
+            let numbers = [];
+            let range = max - min + 1;
+
+            if (allowRepeat === "yes") {
+                for (let i = 0; i < howMany; i++) {
+                    let num;
+                    do {
+                        num = Math.floor(Math.random() * range) + min;
+                    } while (generatedNumbers.has(num));
+                    numbers.push(num);
+                    generatedNumbers.add(num);
+                }
+            } else {
+                if (howMany > range - generatedNumbers.size) {
+                    document.getElementById('result').innerText = "Cannot generate unique numbers: not enough range.";
+                    return;
+                }
+
+                let pool = [];
+                for (let i = min; i <= max; i++) {
+                    if (!generatedNumbers.has(i)) {
+                        pool.push(i);
+                    }
+                }
+
+                for (let i = 0; i < howMany; i++) {
+                    const randomIndex = Math.floor(Math.random() * pool.length);
+                    numbers.push(pool[randomIndex]);
+                    generatedNumbers.add(pool[randomIndex]);
+                    pool.splice(randomIndex, 1);
+                }
+            }
+
+            if (sortOrder === "lowToHigh") {
+                numbers.sort((a, b) => a - b);
+            } else if (sortOrder === "highToLow") {
+                numbers.sort((a, b) => b - a);
+            }
+
+            history.push(...numbers);
+
+            document.getElementById('result').innerText = numbers.join(", ");
+            document.getElementById('history').innerText = `History: ${Array.from(history).join(", ")}`;
+        }
+
+        function confirmClearResults() {
+            if (confirm("Are you sure you want to clear all data?")) {
+                clearResults();
+            }
+        }
+
+        function clearResults() {
+            generatedNumbers.clear();
+            history = [];
+            document.getElementById('result').innerText = "-";
+            document.getElementById('history').innerText = "History: -";
+        }
+    </script>
+</body>
+</html>
